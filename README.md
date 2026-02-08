@@ -137,7 +137,7 @@ github-docs-package/
 **API Docs:** http://185.229.224.244:3000/docs  
 **Status Page:** http://status.sentinelgate.com  
 
-**Emergency Support (24/7):** +254-XXX-XXXXXX
+**Emergency Support (24/7):** +254701393737
 
 ---
 
