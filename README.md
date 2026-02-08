@@ -1,31 +1,147 @@
-﻿# SentinelGate Payment Platform - Documentation
+# SentinelGate Payment Platform Documentation
 
-**PRIVATE REPOSITORY** - SentinelGate payment integration documentation.
-
-## 📚 Documentation
-
-- [Merchant Getting Started](documentation/guides/MERCHANT_GETTING_STARTED.md)
-- [Developer Integration Guide](documentation/guides/DEVELOPER_INTEGRATION_GUIDE.md)
-- [M-Pesa Tutorial](documentation/tutorials/TUTORIAL_MPESA_INTEGRATION.md)
-- [Complete API Reference](documentation/api-reference/COMPLETE_API_REFERENCE.md)
-- [Security Best Practices](documentation/security/SECURITY_BEST_PRACTICES.md)
-- [Troubleshooting Guide](documentation/troubleshooting/COMMON_ISSUES.md)
-
-## 🔧 API Information
-
-**Base URL:** `http://185.229.224.244:3000`
-
-**Authentication:**
-```http
-X-API-Key: sk_live_your_api_key
-X-API-Secret: secret_your_api_secret
-```
-
-## 📞 Support
-
-Email: support@sentinelgate.com
+Comprehensive documentation for integrating with SentinelGate.
 
 ---
 
-**Last Updated:** February 7, 2026  
-**© 2026 SentinelGate. CONFIDENTIAL.**
+## 📚 Documentation Guides
+
+### 1. [Mobile Money Integration Guide](guides/MOBILE_MONEY_GUIDE.md)
+**For:** Business owners, developers, end users  
+**Topics:** M-Pesa, MTN Momo, Airtel Money, Hubtel, multi-country support  
+**Length:** 12,000+ words
+
+**Quick links:**
+- [For Business Owners](guides/MOBILE_MONEY_GUIDE.md#for-business-owners)
+- [For Developers](guides/MOBILE_MONEY_GUIDE.md#for-developers)
+- [Code Examples](guides/MOBILE_MONEY_GUIDE.md#code-examples)
+- [Testing](guides/MOBILE_MONEY_GUIDE.md#testing)
+
+### 2. [Shopify Integration Guide](guides/SHOPIFY_INTEGRATION_GUIDE.md)
+**For:** Shopify store owners, developers  
+**Topics:** Plugin installation, configuration, testing, customization  
+**Length:** 8,000+ words
+
+**Quick links:**
+- [Installation](guides/SHOPIFY_INTEGRATION_GUIDE.md#installation)
+- [Configuration](guides/SHOPIFY_INTEGRATION_GUIDE.md#configuration)
+- [Going Live](guides/SHOPIFY_INTEGRATION_GUIDE.md#going-live)
+- [Troubleshooting](guides/SHOPIFY_INTEGRATION_GUIDE.md#troubleshooting)
+
+### 3. [Card Processing Guide](guides/CARD_PROCESSING_GUIDE.md)
+**For:** Business owners, developers, compliance teams  
+**Topics:** Card payments, PCI compliance, 3D Secure, fraud prevention  
+**Length:** 15,000+ words
+
+**Quick links:**
+- [Integration Methods](guides/CARD_PROCESSING_GUIDE.md#integration-methods)
+- [Security & PCI](guides/CARD_PROCESSING_GUIDE.md#security--pci-compliance)
+- [3D Secure](guides/CARD_PROCESSING_GUIDE.md#3d-secure-authentication)
+- [Testing](guides/CARD_PROCESSING_GUIDE.md#testing)
+
+---
+
+## 🚀 Quick Start
+
+**New to SentinelGate?**
+
+1. **Get API Credentials**
+   - Contact: support@sentinelgate.com
+   - Receive: API Key, Secret, Webhook Secret
+
+2. **Choose Your Integration:**
+   - **E-commerce platform?** → [Shopify Guide](guides/SHOPIFY_INTEGRATION_GUIDE.md)
+   - **Mobile payments in Africa?** → [Mobile Money Guide](guides/MOBILE_MONEY_GUIDE.md)
+   - **Credit/debit cards?** → [Card Processing Guide](guides/CARD_PROCESSING_GUIDE.md)
+
+3. **Test Integration**
+   - Use sandbox credentials
+   - Test with provided test cards/numbers
+   - Verify webhooks
+
+4. **Go Live**
+   - Switch to production credentials
+   - Complete compliance requirements
+   - Monitor first transactions
+
+---
+
+## 📖 Documentation Structure
+```
+github-docs-package/
+├── README.md (this file)
+├── guides/
+│   ├── MOBILE_MONEY_GUIDE.md
+│   ├── SHOPIFY_INTEGRATION_GUIDE.md
+│   └── CARD_PROCESSING_GUIDE.md
+├── integration/
+├── tutorials/
+├── examples/
+└── troubleshooting/
+```
+
+---
+
+## 🎯 By User Type
+
+### For Business Owners
+- [Why Accept Mobile Money?](guides/MOBILE_MONEY_GUIDE.md#for-business-owners)
+- [Why Use SentinelGate for Cards?](guides/CARD_PROCESSING_GUIDE.md#for-business-owners)
+- [Shopify Store Setup](guides/SHOPIFY_INTEGRATION_GUIDE.md#for-store-owners)
+
+### For Developers
+- [Mobile Money API](guides/MOBILE_MONEY_GUIDE.md#for-developers)
+- [Card Payment API](guides/CARD_PROCESSING_GUIDE.md#for-developers)
+- [Shopify Plugin Development](guides/SHOPIFY_INTEGRATION_GUIDE.md#for-developers)
+
+### For End Users (Customers)
+- [How to Pay with Mobile Money](guides/MOBILE_MONEY_GUIDE.md#for-end-users)
+- [How to Pay with Cards](guides/CARD_PROCESSING_GUIDE.md#for-end-users)
+
+### For Compliance Teams
+- [PCI Compliance](guides/CARD_PROCESSING_GUIDE.md#for-compliance-teams)
+- [Security Best Practices](guides/CARD_PROCESSING_GUIDE.md#security--pci-compliance)
+
+---
+
+## 💡 Key Features
+
+✅ **Multi-Provider Support**
+- BUNI, PesaPal, Emergent, Hubtel
+- Automatic failover
+- Smart routing
+
+✅ **Comprehensive Coverage**
+- Mobile money: 8+ countries
+- Cards: Global acceptance
+- Bank transfers: Local options
+
+✅ **Developer-Friendly**
+- RESTful API
+- Webhooks
+- SDKs (Node.js, Python, PHP)
+- Comprehensive documentation
+
+✅ **Secure & Compliant**
+- PCI DSS Level 1
+- 3D Secure 2.0
+- Fraud detection
+- Data encryption
+
+---
+
+## 📞 Support
+
+**Email:** support@sentinelgate.com  
+**Website:** https://sentinelgate.com  
+**API Docs:** http://185.229.224.244:3000/docs  
+**Status Page:** http://status.sentinelgate.com  
+
+**Emergency Support (24/7):** +254-XXX-XXXXXX
+
+---
+
+**Last Updated:** February 8, 2026  
+**Version:** 1.0.0  
+
+**© 2026 SentinelGate Payment Services. All rights reserved.**
