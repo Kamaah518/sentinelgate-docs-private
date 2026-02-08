@@ -590,8 +590,8 @@ app.use('/api/', limiter);
 - **API Reference:** See `API_DOCUMENTATION.md`
 - **Code Examples:** See `code-examples/` directory
 - **Postman Collection:** `SentinelGate_API.postman_collection.json`
-- **Technical Support:** dev-support@sentinelgate.com
-- **Status Page:** http://status.sentinelgate.com
+- **Technical Support:** Support@SentinelGAte.Biz
+- **Status Page:** http://status.sentinelgate.biz
 
 ---
 
