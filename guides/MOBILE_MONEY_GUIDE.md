@@ -665,7 +665,7 @@ Before going live, ensure you have:
 
 **Step 1: Apply for Production Access**
 
-Email: support@sentinelgate.com
+Email: Support@SentinelGAte.Biz
 
 Include:
 - Business name and registration number
@@ -879,9 +879,9 @@ Action:
 - GitHub: https://github.com/Kamaah518/sentinelgate-docs
 
 **Support:**
-- Email: support@sentinelgate.com
-- Phone: +254-XXX-XXXXXX (24/7)
-- Status Page: http://status.sentinelgate.com
+- Email: Support@SentinelGAte.Biz
+- Phone:  + 1 418 476 0308 (24/7)
+- Status Page: http://status.sentinelgate.biz
 
 **Include in support request:**
 - Payment ID
@@ -928,5 +928,5 @@ https://webhook.site/unique-id
 
 **© 2026 SentinelGate Payment Services. All rights reserved.**
 
-For the latest updates, visit: https://docs.sentinelgate.com
+For the latest updates, visit: https://docs.sentinelgate.biz
 
