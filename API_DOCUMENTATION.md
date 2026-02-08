@@ -475,11 +475,11 @@ X-RateLimit-Reset: 1707274800
 ## Support
 
 ### Technical Support
-- Email: support@sentinelgate.com
-- Documentation: http://docs.sentinelgate.com
+- Email: Support@SentinelGAte.Biz
+- Documentation: http://docs.sentinelgate.biz
 
 ### API Status
-- Status Page: http://status.sentinelgate.com
+- Status Page: http://status.sentinelgate.biz
 
 ---
 
