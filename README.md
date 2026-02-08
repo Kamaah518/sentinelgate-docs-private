@@ -132,12 +132,12 @@ github-docs-package/
 
 ## 📞 Support
 
-**Email:** support@sentinelgate.com  
-**Website:** https://sentinelgate.com  
+**Email:** Support@SentinelGAte.Biz  
+**Website:** https://sentinelgate.biz 
 **API Docs:** http://185.229.224.244:3000/docs  
-**Status Page:** http://status.sentinelgate.com  
+**Status Page:** http://status.sentinelgate.biz  
 
-**Emergency Support (24/7):** +254701393737
+**Emergency Support (24/7):**  + 1 418 476 0308
 
 ---
 
