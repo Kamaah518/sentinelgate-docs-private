@@ -79,4 +79,4 @@ See: documentation/troubleshooting/COMMON_ISSUES.md
 
 ## Support
 
-Email: support@sentinelgate.com
+Email: Support@SentinelGAte.Biz
