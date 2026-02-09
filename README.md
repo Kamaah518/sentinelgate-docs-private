@@ -134,8 +134,8 @@ github-docs-package/
 
 **Email:** Support@SentinelGAte.Biz  
 **Website:** https://sentinelgate.biz 
-**API Docs:** http://185.229.224.244:3000/docs  
-**Status Page:** http://status.sentinelgate.biz  
+**API Docs:** https://sentinelgate.biz/api/docs
+**Status Page:** https://sentinelgate.biz/api/status 
 
 **Emergency Support (24/7):**  + 1 418 476 0308
 
