@@ -1,0 +1,318 @@
+# SentinelGate PSP — Shopify Integration Guide
+
+**Version:** 1.0.0
+**Last Updated:** February 24, 2026
+**Platform:** Shopify (all plans)
+
+---
+
+## Overview
+
+SentinelGate integrates with Shopify stores via a middleware that captures order webhooks, generates secure payment links, and processes payments through connected providers. Customers are redirected to a hosted checkout page to complete payment, then returned to a confirmation page.
+
+**Supported payment methods:** Card payments (Visa, Mastercard), Mobile Money
+**Supported currencies:** USD, GHS, KES, UGX
+
+---
+
+## Architecture
+
+```
+Shopify store receives order
+        ↓
+Shopify sends webhook → SentinelGate middleware
+        ↓
+Middleware generates payment link
+        ↓
+Customer receives payment link (email or redirect)
+        ↓
+Customer pays on hosted checkout page
+        ↓
+Payment verified → Order marked as paid in Shopify
+        ↓
+Customer redirected to thank-you page
+```
+
+### Components
+
+| Component | Description |
+|-----------|-------------|
+| **Shopify Webhook Handler** | Receives `orders/create`, `orders/paid`, `orders/cancelled`, `refunds/create` events |
+| **Payment Redirect Page** | Redirects customer to payment provider checkout |
+| **Thank You Page** | Confirms successful payment |
+| **Tenant Config** | Per-store configuration stored in database |
+| **BullMQ Worker** | Async queue for processing webhook events |
+
+---
+
+## Prerequisites
+
+- A Shopify store (any plan)
+- SentinelGate merchant account (tenant ID and credentials)
+- Admin API access token from Shopify
+- HMAC webhook secret from Shopify
+
+---
+
+## Step 1 — Register Your Store as a Tenant
+
+Contact your SentinelGate integration team to register your Shopify store. They will need:
+
+| Information | Example |
+|------------|---------|
+| **Store Name** | Apeiron Elementals |
+| **Shopify Domain** | `apeiron-elementals.myshopify.com` |
+| **Store URL** | `https://apeironelementals.com` |
+| **Admin API Token** | From Shopify Admin → Settings → Apps → Develop Apps |
+| **Webhook HMAC Secret** | From Shopify Admin → Settings → Notifications → Webhooks |
+| **Preferred Currency** | USD |
+| **Contact Email** | merchant@yourstore.com |
+
+Your SentinelGate team will provide:
+
+| Credential | Description |
+|-----------|-------------|
+| **Tenant ID** | Your unique merchant identifier |
+| **Webhook Endpoint** | URL to configure in Shopify |
+
+---
+
+## Step 2 — Create a Shopify Custom App
+
+1. In Shopify Admin, go to **Settings → Apps and sales channels → Develop apps**
+2. Click **Create an app** → Name it `SentinelGate Payments`
+3. Click **Configure Admin API scopes** and enable:
+   - `read_orders`
+   - `write_orders`
+   - `read_products`
+4. Click **Save** → **Install app**
+5. Copy the **Admin API access token** (shown only once)
+6. Go to **Settings → Notifications → Webhooks**
+7. Copy the **HMAC secret** displayed at the bottom
+
+---
+
+## Step 3 — Configure Webhooks in Shopify
+
+In Shopify Admin → **Settings → Notifications → Webhooks**, create the following webhooks:
+
+| Event | Webhook URL | Format |
+|-------|-------------|--------|
+| **Order creation** | `https://sentinelgate.biz/webhooks/shopify/order-created` | JSON |
+| **Order payment** | `https://sentinelgate.biz/shopify/webhook/orders/paid` | JSON |
+| **Order cancellation** | `https://sentinelgate.biz/shopify/webhook/orders/cancelled` | JSON |
+| **Refund creation** | `https://sentinelgate.biz/shopify/webhook/refunds/create` | JSON |
+
+**Important:** All webhooks are verified using HMAC-SHA256 signatures. Ensure the HMAC secret is shared with your SentinelGate integration team.
+
+---
+
+## Step 4 — Configure Payment Redirect
+
+For Shopify stores that use manual/external payment methods, configure the additional checkout script to redirect customers to SentinelGate:
+
+### Option A: Shopify Additional Scripts (Recommended)
+
+1. Go to **Settings → Checkout → Order status page → Additional scripts**
+2. Add the following script:
+
+```html
+<script>
+  if (Shopify.checkout && Shopify.checkout.order_id) {
+    var amount = Math.round(Shopify.checkout.total_price * 100);
+    var email = Shopify.checkout.email || '';
+    var name = Shopify.checkout.billing_address ? Shopify.checkout.billing_address.name : '';
+    var orderId = Shopify.checkout.order_id;
+    
+    // Redirect to SentinelGate payment page
+    window.location.href = 'https://sentinelgate.biz/pay/shopify-redirect'
+      + '?amount=' + amount
+      + '&email=' + encodeURIComponent(email)
+      + '&order=' + orderId
+      + '&name=' + encodeURIComponent(name);
+  }
+</script>
+```
+
+### Option B: Webhook-Triggered Payment Email
+
+If you prefer not to redirect at checkout, SentinelGate can send a payment link via email when an order is created. The customer receives an email with a secure link to complete payment.
+
+This is configured automatically when your tenant is registered. The email includes:
+
+- Order details and amount
+- Secure payment link
+- Expiry time (24 hours)
+
+---
+
+## Step 5 — Set Up Payment Method in Shopify
+
+1. Go to **Settings → Payments**
+2. Under **Manual payment methods**, click **Create custom payment method**
+3. Configure:
+
+| Setting | Value |
+|---------|-------|
+| **Custom payment method name** | `Pay with Card / Mobile Money` |
+| **Additional details** | `You will be redirected to complete your payment securely via SentinelGate` |
+| **Payment instructions** | `Complete your payment using the secure link provided. Your order will be confirmed once payment is received.` |
+
+4. Click **Activate**
+
+---
+
+## Step 6 — Test a Payment
+
+1. Create a test order on your Shopify store
+2. Select the custom payment method at checkout
+3. Complete checkout — you should be redirected to the payment page
+4. Complete payment on the hosted checkout page
+5. You should be redirected to the thank-you page
+6. Check the order in Shopify Admin → **Orders** — it should be marked as paid
+
+---
+
+## Payment Flow (Detailed)
+
+### Order Creation Flow
+
+```
+1. Customer completes Shopify checkout
+        ↓
+2. Shopify sends orders/create webhook to SentinelGate
+        ↓
+3. SentinelGate middleware:
+   a. Verifies HMAC signature
+   b. Checks idempotency (prevents duplicate processing)
+   c. Queues order in BullMQ for async processing
+        ↓
+4. BullMQ worker:
+   a. Creates payment session with provider
+   b. Generates payment link
+   c. Sends payment email to customer (if configured)
+        ↓
+5. Customer clicks payment link or is redirected
+        ↓
+6. Customer pays on hosted checkout page
+        ↓
+7. Provider callback → SentinelGate verifies payment
+        ↓
+8. SentinelGate calls Shopify Admin API to mark order as paid
+        ↓
+9. Customer redirected to thank-you page
+```
+
+### Webhook Security
+
+All Shopify webhooks are verified using HMAC-SHA256:
+
+```
+HMAC = SHA256(raw_request_body, webhook_secret)
+Comparison: X-Shopify-Hmac-SHA256 header vs computed HMAC
+```
+
+Invalid signatures are rejected with HTTP 401.
+
+### Idempotency
+
+Each webhook is processed exactly once using Redis-based idempotency keys. Duplicate webhooks (which Shopify may send during retries) are safely ignored.
+
+### Rate Limiting
+
+The webhook endpoint is rate-limited to prevent abuse. Standard rate: 100 requests per minute per store.
+
+---
+
+## Middleware Endpoints
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/webhooks/shopify/order-created` | POST | Primary order webhook |
+| `/shopify/webhook/orders/create` | POST | Alternate order webhook |
+| `/shopify/webhook/orders/paid` | POST | Order paid notification |
+| `/shopify/webhook/orders/cancelled` | POST | Order cancellation |
+| `/shopify/webhook/refunds/create` | POST | Refund processing |
+| `/pay/shopify-redirect` | GET | Payment redirect page |
+| `/pay/shopify-thankyou` | GET | Post-payment confirmation |
+
+### Admin Endpoints
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/v1/tenants` | POST | Register new tenant (admin) |
+| `/v1/tenants/:id/logs` | GET | View tenant transaction logs |
+
+---
+
+## Tenant Configuration
+
+Each Shopify store is registered as a tenant with the following configuration:
+
+```json
+{
+  "id": "your-store-id",
+  "shopDomain": "your-store.myshopify.com",
+  "shopifyAccessToken": "shpat_xxxxx",
+  "shopifyHmacSecret": "xxxxx",
+  "sentinelgateApiKey": "sg_key_xxxxx",
+  "sentinelgateApiSecret": "sg_secret_xxxxx",
+  "paymentProvider": "hubtel",
+  "currency": "USD",
+  "active": true
+}
+```
+
+---
+
+## Data Processing
+
+### Encryption
+
+Sensitive data (tokens, secrets) is encrypted at rest using AES-256-GCM encryption before storage in the database.
+
+### Queue Processing
+
+Webhooks are processed asynchronously via BullMQ:
+
+| Setting | Value |
+|---------|-------|
+| **Concurrency** | 10 workers |
+| **Max Attempts** | 5 (with exponential backoff) |
+| **Queue Backend** | Redis |
+
+---
+
+## Troubleshooting
+
+### Webhook not received by SentinelGate
+1. Verify webhook URLs in Shopify Admin → Settings → Notifications → Webhooks
+2. Check that `https://sentinelgate.biz` is accessible from the internet
+3. In Shopify, check webhook delivery status — failed deliveries show error codes
+
+### Customer not redirected to payment page
+1. Verify the additional checkout script is correctly installed
+2. Check browser console for JavaScript errors
+3. Ensure the redirect URL is correct: `https://sentinelgate.biz/pay/shopify-redirect`
+
+### Order not marked as paid after payment
+1. Check SentinelGate logs for callback errors
+2. Verify the Shopify Admin API token has `write_orders` permission
+3. Ensure the tenant configuration has the correct `shopifyAccessToken`
+
+### Duplicate orders or payments
+The middleware uses Redis-based idempotency to prevent duplicate processing. If you see duplicates, verify Redis is running and accessible.
+
+### Payment email not received
+1. Check SentinelGate email logs
+2. Verify the customer email address is correct in the Shopify order
+3. Check spam/junk folders
+4. Ensure Resend.com email domain is verified for `sentinelgate.biz`
+
+---
+
+## Support
+
+- **Email:** support@sentinelgate.biz
+- **Documentation:** https://sentinelgate.biz/docs
+- **API Status:** https://sentinelgate.biz/status
