@@ -1,0 +1,323 @@
+# SentinelGate API Reference
+
+**Base URL:** `https://sentinelgate.biz`
+**Auth:** API key via `x-api-key` header
+**Content-Type:** `application/json`
+
+---
+
+## Authentication
+
+All requests require a merchant API key:
+
+```
+x-api-key: sk_live_your_api_key_here
+```
+
+Additional headers for merchant-scoped requests:
+
+```
+x-tenant-id: default
+x-merchant-id: your-merchant-id
+```
+
+---
+
+## Endpoints
+
+### 1. Create Hosted Checkout Session
+
+Creates a payment session and returns a redirect URL.
+
+```
+POST /v1/hosted/create
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `amount` | string | Yes | Payment amount (e.g., "50.00") |
+| `currency` | string | Yes | ISO 4217 code (USD, GHS, KES) |
+| `order_id` | string | Yes | Your unique order identifier |
+| `customer_email` | string | Yes | Customer email |
+| `customer_name` | string | No | Customer full name |
+| `callback_url` | string | Yes | Webhook URL for status updates |
+| `success_url` | string | No | Redirect after successful payment |
+| `cancel_url` | string | No | Redirect if customer cancels |
+| `metadata` | object | No | Custom key-value data |
+
+**Request:**
+
+```bash
+curl -X POST https://sentinelgate.biz/v1/hosted/create \
+  -H "x-api-key: sk_live_your_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": "50.00",
+    "currency": "USD",
+    "order_id": "ORD-20260304-001",
+    "customer_email": "customer@example.com",
+    "callback_url": "https://yoursite.com/webhooks/payment",
+    "success_url": "https://yoursite.com/order/success"
+  }'
+```
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "session_id": "sess_a1b2c3d4e5f6",
+  "redirect_url": "https://sentinelgate.biz/v1/hosted/pay/sess_a1b2c3d4e5f6",
+  "expires_at": "2026-03-04T02:00:00.000Z"
+}
+```
+
+---
+
+### 2. Direct Charge
+
+Initiate a payment directly without a hosted checkout page.
+
+```
+POST /v1/charge
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `amount_cents` | integer | Yes | Amount in cents (5000 = $50.00) |
+| `currency` | string | Yes | ISO 4217 code |
+| `merchant_id` | string | Yes | Your merchant identifier |
+| `rail` | string | Yes | CARD, MOMO, or BANK_TRANSFER |
+| `email` | string | Yes | Customer email |
+| `reference` | string | No | Your unique reference |
+| `callback_url` | string | No | Webhook URL |
+| `metadata` | object | No | Custom metadata |
+
+**Request:**
+
+```bash
+curl -X POST https://sentinelgate.biz/v1/charge \
+  -H "x-api-key: sk_live_your_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount_cents": 5000,
+    "currency": "USD",
+    "merchant_id": "your-merchant-id",
+    "rail": "CARD",
+    "email": "customer@example.com",
+    "reference": "ref_20260304_001"
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "ok": true,
+  "payment_intent_id": "sg_txn_abc123",
+  "status": "PENDING",
+  "next_action": {
+    "type": "REDIRECT_URL",
+    "redirect_url": "https://checkout.provider.com/pay?token=xyz"
+  },
+  "reference": "ref_20260304_001"
+}
+```
+
+---
+
+### 3. Get Transaction
+
+```
+GET /v1/transaction/:id
+```
+
+**Response:**
+
+```json
+{
+  "ok": true,
+  "transaction": {
+    "id": "sg_txn_abc123",
+    "merchant_id": "your-merchant-id",
+    "amount_cents": 5000,
+    "currency": "USD",
+    "status": "CAPTURED",
+    "reference": "ref_20260304_001",
+    "provider_ref": "121676133",
+    "created_at": "2026-03-04T01:19:10.507Z",
+    "updated_at": "2026-03-04T01:19:45.123Z"
+  }
+}
+```
+
+**Transaction Statuses:**
+
+| Status | Description |
+|--------|-------------|
+| `PENDING` | Awaiting customer action |
+| `PROCESSING` | Being processed by provider |
+| `CAPTURED` | Payment successful |
+| `FAILED` | Payment failed or declined |
+| `REFUNDED` | Refunded |
+| `DISPUTED` | Under dispute |
+
+---
+
+### 4. Refund
+
+```
+POST /v1/refund
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `transaction_id` | string | Yes | Original transaction ID |
+| `amount_cents` | integer | No | Partial refund amount (omit for full) |
+| `reason` | string | No | Refund reason |
+
+---
+
+### 5. Payment Links
+
+#### Create
+
+```
+POST /payment-links/create
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `merchant_id` | string | Yes | Merchant identifier |
+| `type` | string | No | STANDARD, INVOICE, or GAMING |
+| `title` | string | No | Display title |
+| `description` | string | No | Description shown to customer |
+| `amount_cents` | integer | No | Fixed amount (omit for open) |
+| `currency` | string | No | Currency (default: USD) |
+| `allow_custom_amount` | boolean | No | Let customer enter amount |
+| `allowed_rails` | array | No | Restrict payment methods |
+| `expires_at` | string | No | ISO 8601 expiry |
+| `success_url` | string | No | Redirect after payment |
+
+**Response:**
+
+```json
+{
+  "ok": true,
+  "payment_link": {
+    "id": "pl_ebd725eb0eef79a9",
+    "token": "374382e0832555f639eea2bcbb768e57",
+    "type": "STANDARD",
+    "status": "ACTIVE",
+    "url": "https://sentinelgate.biz/pay/374382e0832555f639eea2bcbb768e57",
+    "qr_png_url": "https://sentinelgate.biz/pay/374382e0832555f639eea2bcbb768e57/qr.png"
+  }
+}
+```
+
+#### List
+
+```
+GET /payment-links/list?merchant_id=your-merchant-id
+```
+
+#### Disable
+
+```
+POST /payment-links/:id/disable
+```
+
+---
+
+### 6. Merchant Portal API
+
+Authenticated via `x-tenant-id` and `x-merchant-id` headers.
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/v1/merchant/stats` | GET | Dashboard KPIs, daily breakdown |
+| `/v1/merchant/transactions` | GET | Paginated transactions with filters |
+| `/v1/merchant/activity` | GET | Recent transaction feed |
+| `/v1/merchant/rails` | GET | Configured payment rails |
+| `/v1/merchant/settlements` | GET | Settlement summary |
+| `/v1/merchant/disputes` | GET | Dispute tracking |
+| `/v1/merchant/payment-links` | GET | List payment links |
+| `/v1/merchant/payment-links/create` | POST | Create payment link |
+| `/v1/merchant/developer` | GET | API keys and endpoints |
+| `/v1/merchant/audit-log` | GET | Activity log |
+
+---
+
+### 7. Digital Wallet Endpoints
+
+#### Apple Pay
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/v1/wallet/apple-pay/register-domain` | POST | Register and verify domain with Apple |
+| `/v1/wallet/apple-pay/session` | POST | Validate merchant session with Apple servers |
+| `/v1/wallet/apple-pay/charge` | POST | Decrypt and charge an Apple Pay token |
+
+#### Google Pay
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/v1/wallet/google-pay/charge` | POST | Decrypt and charge a Google Pay token |
+
+Both wallets are also automatically available on the hosted checkout page when the `wallets` parameter is set:
+
+```json
+{
+  "wallets": ["APPLE_PAY", "GOOGLE_PAY"]
+}
+```
+
+---
+
+### 7. Admin API
+
+Authenticated via `x-api-key` with admin-scoped keys.
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/admin/crm/whoami` | GET | Admin identity and role |
+| `/admin/crm/metrics/summary` | GET | Platform-wide transaction summary |
+| `/admin/crm/metrics/daily` | GET | Daily breakdown |
+| `/admin/crm/metrics/merchants` | GET | Per-merchant stats |
+| `/admin/support/metrics` | GET | Merchant/partner/txn counts |
+| `/admin/analytics/revenue` | GET | Revenue with MoM comparison |
+| `/admin/analytics/merchants` | GET | Merchant ranking |
+| `/admin/analytics/providers` | GET | Provider performance |
+| `/admin/analytics/export/transactions` | GET | CSV export |
+| `/admin/analytics/export/merchants` | GET | CSV export |
+
+---
+
+## Error Codes
+
+| Code | Description |
+|------|-------------|
+| `MISSING_API_KEY` | No x-api-key header |
+| `INVALID_API_KEY` | Key not found or revoked |
+| `MERCHANT_NOT_FOUND` | Merchant ID invalid |
+| `INVALID_AMOUNT` | Amount zero, negative, or malformed |
+| `CURRENCY_NOT_SUPPORTED` | Currency not configured |
+| `NO_ROUTE_AVAILABLE` | No provider for this rail/currency |
+| `PROVIDER_ERROR` | Upstream provider error |
+| `RATE_LIMIT_EXCEEDED` | Too many requests |
+| `DUPLICATE_REFERENCE` | Reference already used |
+
+---
+
+## Rate Limits
+
+| Endpoint | Limit |
+|----------|-------|
+| `/v1/hosted/create` | 100/min per merchant |
+| `/v1/charge` | 100/min per merchant |
+| `/v1/transaction/:id` | 300/min per merchant |
+| `/payment-links/create` | 50/min per merchant |
+
+---
+
+© 2026 SentinelGate — Whyte AG Group

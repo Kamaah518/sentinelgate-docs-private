@@ -1,82 +1,83 @@
-# Installation & Setup Guide
+# Changelog
 
-## For Merchants Using Plugins
+All notable changes to SentinelGate are documented here.
 
-### Shopify
-1. Download plugin from merchant-packages/[your-merchant-id]/
-2. Log into Shopify admin
-3. Go to Apps → Manage private apps
-4. Install SentinelGate plugin
-5. Enter credentials from CREDENTIALS.txt
-6. Test with small transaction
+---
 
-### WooCommerce
-1. Download plugin from merchant-packages/[your-merchant-id]/
-2. Log into WordPress admin
-3. Go to Plugins → Add New → Upload
-4. Upload and activate SentinelGate plugin
-5. Configure credentials in Settings
-6. Test checkout
+## [2026-03-04] — Session 6
 
-## For Developers (Custom Integration)
+### Added
+- **Merchant Portal: Payment Link Generator** — Merchants can now create payment links directly from the portal (Payment Links → New Payment Link) with title, type, amount, currency, description, and expiry fields
+- **POST /v1/merchant/payment-links/create** — New merchant-scoped API endpoint for creating payment links
+- **GET /v1/merchant/activity** — New endpoint for recent transaction feed on merchant dashboard
+- **PaymentIntent tracking columns** — Added `reference`, `updated_at`, `provider_ref`, and `metadata` columns to PaymentIntent table
+- **Database indexes** — Added `idx_pi_reference` and `idx_pi_merchant_status` for faster lookups
+- **Apex Labs** — New merchant onboarded with card processing (USD)
+- **MLOPS Consulting** — New merchant onboarded with card and mobile money processing (GHS)
 
-### Step 1: Choose Your Language
-- Python: See code-examples/python_example.py
-- PHP: See code-examples/php_example.py
-- Node.js: See code-examples/nodejs_example.js
+### Fixed
+- **Payment status tracking** — PaymentIntents no longer get stuck in PENDING; reference-based callback matching ensures correct status updates
+- **Status case inconsistency** — Fixed 17 records with lowercase "pending" to uppercase "PENDING"
+- **Provider ref type mismatch** — Fixed silent Prisma failure when numeric provider references were written to String columns
+- **Admin dashboard metrics** — Regenerated admin API keys; all CRM and analytics endpoints now return data correctly
+- **Card-only checkout** — Checkout redirects now go directly to the card entry form, skipping the payment method selection page
 
-### Step 2: Install Dependencies
+### Changed
+- **Callback matching** — Switched from fragile merchant_id + PENDING lookup to reference-based matching with fallback
+- **Orchestrator error handling** — Added error logging with stack traces and proper type casting
+- **Payment links page** — Rewrote from read-only list to full CRUD with create form
 
-**Python:**
-```bash
-pip install requests
-```
+---
 
-**PHP:**
-```bash
-composer require guzzlehttp/guzzle
-```
+## [2026-02-11] — Session 5
 
-**Node.js:**
-```bash
-npm install axios dotenv
-```
+### Added
+- **Brooks merchant routing** — Three merchant profiles with USD routing, daily limits, and provider failover
+- **6 new provider adapters** — Card, mobile money, and alternative payment method adapters
+- **Provider health checks** — Health method added to all provider adapters
 
-### Step 3: Set Up Environment Variables
+### Fixed
+- **Adapter health method duplicates** — Resolved sed-induced duplication across adapter files
 
-Create `.env` file:
-```env
-SENTINELGATE_API_KEY=sk_live_your_key
-SENTINELGATE_API_SECRET=secret_your_secret
-SENTINELGATE_WEBHOOK_SECRET=whsec_your_webhook_secret
-SENTINELGATE_BASE_URL=http://185.229.224.244:3000
-```
+---
 
-### Step 4: Test Integration
+## [2026-02-10] — Session 4
 
-1. Copy example code for your language
-2. Update credentials
-3. Run test payment
-4. Verify webhook receipt
+### Added
+- **Card Processing Guide** — Comprehensive documentation for card payment flows
+- **GitHub documentation repository** — Set up SentinelGateLC/SentinelgateDocumentation
 
-### Step 5: Deploy to Production
+---
 
-See: DEPLOYMENT_CHECKLIST.md
+## [2026-02-08] — Session 3
 
-## Using Postman Collection
+### Added
+- **Shopify PSP middleware** — Full Shopify integration with HMAC verification, BullMQ worker, Redis idempotency, AES-256-GCM encryption, and rate limiting
+- **Shopify tenant management** — /v1/tenants endpoint for onboarding Shopify stores
+- **ShopifyTenantConfig and ShopifyCaptureLog** — Prisma models for Shopify integration
 
-1. Open Postman
-2. Import: SentinelGate_API.postman_collection.json
-3. Set variables:
-   - base_url: http://185.229.224.244:3000
-   - api_key: [your key]
-   - api_secret: [your secret]
-4. Test endpoints
+---
 
-## Troubleshooting
+## [2026-02-06] — Session 2
 
-See: documentation/troubleshooting/COMMON_ISSUES.md
+### Added
+- **Payment Links system** — Create, list, disable payment links with QR code generation
+- **Hosted checkout** — /v1/hosted/create and /v1/hosted/pay/:session endpoints
+- **Payment orchestrator** — Provider routing with priority-based selection and failover
+- **M-Pesa STK push** — Mobile money integration for Kenya (KES)
+- **WooCommerce plugin** — sentinelgate-psp plugin with Direct/Redirect/iFrame modes
 
-## Support
+---
 
-Email: Support@SentinelGAte.Biz
+## [2026-02-04] — Session 1
+
+### Added
+- **Core platform** — svc-rails, api-gateway, web-admin, web-merchant services
+- **Prisma schema** — Merchant, Partner, ProviderConfig, ProviderMidProfile, PaymentIntent, PaymentLink models
+- **BackOffice authentication** — PBKDF2 + JWT with role-based dashboards
+- **Admin console** — Platform administration with metrics and merchant management
+- **Merchant portal** — Next.js dashboard with login, transactions, and settings
+
+---
+
+© 2026 SentinelGate — Whyte AG Group
